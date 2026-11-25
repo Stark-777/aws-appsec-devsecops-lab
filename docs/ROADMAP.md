@@ -1,0 +1,20 @@
+# Eight-week roadmap
+
+Budget: about six hours weekly, 48 hours total. These are timeboxes, not promises that every named tool or cloud feature will be delivered. Use one small branch and pull request per coherent change. The present task is documentation only; track current state in [PROGRESS](PROGRESS.md).
+
+| Week | Tasks (approximate allocation) | Acceptance criteria | Deliverables |
+| --- | --- | --- | --- |
+| 1: Foundation | Contract and two-user matrix (2h); route-specific STRIDE review (1h); minimum local API (2h); Mocha/Chai smoke tests (1h). | Every implemented route has a documented schema and owner rule; local tests pass; no AWS resources. | Contract, threat model v1, API baseline and test output. |
+| 2: App assessment | Two-user BOLA and function-level probes (2h); finding records (1h); remediation (2h); negative regressions (1h). | Every implemented read, list, download, write and delete route has owner/cross-user tests; privileged operations, if any, deny ordinary users; defects remain local. | Findings, fix and regression evidence. |
+| 3: Terraform | Minimal resource design and IAM (3h); fmt/validate/Checkov (1h); plan, cost and teardown review (2h). | No apply; private storage and scoped IAM are visible in the plan; scan findings triaged; state strategy decided. | IaC review, plan, cost estimate. |
+| 4: CI/CD | Reproducible build/test workflow (2h); secret and dependency scanning (2h); one SAST and IaC scan with triage/gates (2h). | PR workflow runs selected scans, blocks documented high-risk findings, uses minimal permissions and stores no AWS keys. | CI workflow, reports, gate policy. |
+| 5: OIDC/deploy | Verify pricing, budget and teardown (1h); scoped OIDC and runtime roles (2h); approval gate and approved deployment (1h); cloud auth/owner tests (2h). | Approval precedes mutation; OIDC trust limits repo/ref/audience; cloud negative tests pass; spend checked. If approval is withheld, record that cloud evidence is pending. | Role review, deployment evidence if approved, inventory. |
+| 6: DAST | Confirm owned target (1h); bounded authenticated ZAP (2h); triage (1h); fix/regress (2h). | Only owned local or approved cloud target scanned; confirmed serious issues fixed or deployment halted; false positives documented. | ZAP report, findings, regressions. |
+| 7: Monitoring | Redacted event schema (1h); bounded logs and audit plan (2h); synthetic incident exercise (2h); runbook (1h). | Request IDs and outcomes correlate without tokens or bytes; retention/cost checked; timeline reproducible locally or in approved cloud. | Events and runbook. |
+| 8: Final review | Requirements/risks (1.5h); portfolio narrative (1.5h); interview rehearsal (1h); approved cloud teardown and verification, if deployed (2h). | Claims link to evidence; residual risks explicit; deployed resources removed and lingering charges checked. | Assessment, interview notes, teardown record if applicable. |
+
+## Gates and scope
+
+Cloud deployment requires explicit approval after review of Terraform plan, IAM, current pricing, budget alerts and teardown. Cloud DAST additionally requires an approved target. Review actual time and spend after each week; reduce optional scope before weakening authorization tests. The minimum story is an authenticated document API with BOLA finding/fix/regression, least-privilege IaC, basic CI gates, and a teardown plan or verified teardown if deployed. A local-only outcome must be described honestly as lacking cloud deployment evidence.
+
+**Stretch goals:** additional SAST engines or report formats (including CodeQL), container scanning with Trivy if a container is built, CycloneDX SBOM, sharing/admin features, CloudTrail data events, and a cloud-hosted ZAP run. Docker may support local tooling without an AWS container service. NAT gateways, paid security services, and custom domains remain out of scope unless separately cost-reviewed. Gitleaks, Semgrep, Checkov, Trivy and other named tools are candidates, not a tool-count success metric.
