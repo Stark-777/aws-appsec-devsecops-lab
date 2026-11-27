@@ -38,10 +38,10 @@ flowchart LR
 
 ## Initial API and data assumptions
 
-- One owner per document, no sharing in minimum scope; two synthetic users for BOLA tests. An admin capability is optional and requires explicit function-level rules.
-- Metadata consists of an opaque document ID, owner subject, storage key, type, size, and timestamps. Bytes live in S3 only after an approved deployment. Clients do not choose storage keys.
-- Candidate operations: upload/create, list own, read metadata, download, delete. Update and sharing are unresolved. Tests should cover only implemented routes.
-- Start with small synthetic text files or metadata-only records. Define allowed types, limits, download behavior, and malware handling before cloud uploads. This plan does not assert arbitrary file uploads are safe.
+- Alice and Bob are synthetic users. Each document has one immutable owner from authenticated identity. There is no sharing or admin function in the MVP.
+- The five planned routes are `POST /documents`, `GET /documents`, `GET /documents/{id}`, `GET /documents/{id}/content`, and `DELETE /documents/{id}`. The [OpenAPI contract](api-contract.yaml) and [authorization matrix](authorization-matrix.md) define their behavior.
+- Create requests carry only a JSON `content` string. The content is nonempty UTF-8 text, at most 100,000 encoded bytes (decimal 100 KB). Arbitrary files, filenames, archives, update, and sharing are out of MVP scope.
+- Metadata includes a server-generated UUID, owner subject, internal storage key, byte size, and creation time. Ownership and keys are never client-supplied. Bytes live in S3 only after an approved deployment; content is returned through the API, not a presigned URL.
 - No VPC or NAT gateway is planned for the minimum serverless path. Private S3 does not mean the API endpoint is private.
 
-Verify unauthenticated denial, cross-user denial for each operation, function-level denial, S3 public-access denial, and OIDC trust conditions. See [requirements](security-requirements.md), [decisions](security-decisions.md), and [threat model](../security/threat-model/README.md).
+Verify unauthenticated denial, cross-user denial for each implemented operation, S3 public-access denial, and OIDC trust conditions. A privileged-route test applies only if a privileged route is introduced later. See [requirements](security-requirements.md), [decisions](security-decisions.md), and [threat model](../security/threat-model/README.md).

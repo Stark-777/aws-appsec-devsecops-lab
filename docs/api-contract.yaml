@@ -1,0 +1,271 @@
+openapi: 3.1.0
+info:
+  title: SecureDocs MVP API
+  version: 0.1.0
+  description: >-
+    Documentation-only contract for a synthetic, owner-only text document API.
+    No endpoint or authentication integration is implemented yet. 100 KB means
+    100,000 bytes of UTF-8 encoded document content after JSON decoding, not
+    the number of Unicode characters or the size of the JSON envelope.
+servers:
+  - url: http://localhost:3000
+    description: Planned local development server; not yet implemented
+tags:
+  - name: Documents
+    description: Owner-only document operations
+security:
+  - bearerAuth: []
+paths:
+  /documents:
+    post:
+      tags: [Documents]
+      operationId: createDocument
+      summary: Create a text document owned by the authenticated subject
+      description: >-
+        The only accepted request field is content. The server derives the
+        immutable owner from the validated identity and generates the UUID and
+        internal storage key. Unknown fields, including ownerId, role, and
+        storageKey, are rejected. Duplicate JSON keys are rejected. The server
+        validates UTF-8 content size after JSON decoding. Content-Type must be
+        application/json, with an optional UTF-8 charset parameter. This contract does
+        not permit arbitrary file uploads, filenames, sharing, or admin roles.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocumentRequest'
+            examples:
+              simple:
+                value:
+                  content: Synthetic notes for Alice.
+      responses:
+        '201':
+          description: Document created
+          headers:
+            Location:
+              description: Relative URL of the new document metadata
+              schema:
+                type: string
+                example: /documents/6a371ce5-09c4-40d6-b8aa-c07debc6e9a9
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          $ref: '#/components/responses/ContentTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+    get:
+      tags: [Documents]
+      operationId: listDocuments
+      summary: List only the authenticated subject's documents
+      description: >-
+        The server filters by the authenticated subject. No client-supplied
+        owner selector, role, storage key, pagination, or sharing filter is
+        accepted in the MVP. An unknown query parameter is rejected with 400.
+      responses:
+        '200':
+          description: Owned documents, possibly an empty list
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /documents/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [Documents]
+      operationId: getDocument
+      summary: Get metadata for an owned document
+      responses:
+        '200':
+          description: Owned document metadata
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Documents]
+      operationId: deleteDocument
+      summary: Delete an owned document
+      description: >-
+        Authorization is checked before deletion. Missing and other-owner
+        documents produce the same 404 response. A successful delete removes
+        metadata and content; the consistency/rollback design remains open.
+      responses:
+        '204':
+          description: Document deleted; no response body
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /documents/{id}/content:
+    parameters:
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [Documents]
+      operationId: getDocumentContent
+      summary: Read UTF-8 text from an owned document through the API
+      description: >-
+        Content is never exposed through a presigned URL. Authorization uses
+        stored ownership before any storage read. Missing and other-owner
+        documents produce the same 404 response.
+      responses:
+        '200':
+          description: Owned document content
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/NoStore'
+            X-Content-Type-Options:
+              description: Prevent MIME sniffing
+              schema:
+                type: string
+                const: nosniff
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+              example: Synthetic notes for Alice.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Planned cloud bearer token. The local synthetic identity adapter is
+        test-only and must not be deployable as cloud authentication.
+  parameters:
+    DocumentId:
+      name: id
+      in: path
+      required: true
+      description: Server-generated UUID. Malformed UUIDs return 400.
+      schema:
+        type: string
+        format: uuid
+  headers:
+    NoStore:
+      description: Prevent storage of sensitive responses in shared caches
+      schema:
+        type: string
+        const: no-store
+  schemas:
+    CreateDocumentRequest:
+      type: object
+      required: [content]
+      additionalProperties: false
+      properties:
+        content:
+          type: string
+          minLength: 1
+          description: >-
+            Nonempty UTF-8 text. The application must enforce a 100,000-byte
+            UTF-8 limit after decoding; JSON Schema maxLength counts characters
+            and cannot enforce the byte limit by itself.
+          x-max-utf8-bytes: 100000
+    DocumentMetadata:
+      type: object
+      required: [id, byteSize, createdAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated document identifier
+        byteSize:
+          type: integer
+          minimum: 1
+          maximum: 100000
+        createdAt:
+          type: string
+          format: date-time
+      description: >-
+        Only metadata safe to return to the owner. The owner subject and
+        storage key remain server-side and are never accepted from the client.
+    Error:
+      type: object
+      required: [code, message]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+          description: Generic client-safe text; no internal details
+  responses:
+    BadRequest:
+      description: Malformed UUID, JSON, UTF-8, duplicate key, unknown field or query parameter, or empty content
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid authentication
+      headers:
+        WWW-Authenticate:
+          description: Bearer authentication challenge
+          schema:
+            type: string
+            example: Bearer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Identical status and generic body for nonexistent and other-owner documents
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: not_found
+            message: Document not found.
+    ContentTooLarge:
+      description: Decoded UTF-8 document content exceeds 100,000 bytes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnsupportedMediaType:
+      description: Create request is not application/json
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

@@ -6,9 +6,9 @@ These project requirements align with [OWASP ASVS 5.0.0](https://github.com/OWAS
 | --- | --- | --- | --- |
 | AUTH-01 | Require a valid identity on document routes; reject missing, expired, malformed and wrong-audience tokens. Negative API tests. | V6 Authentication; V9 Tokens; V10 OAuth/OIDC | 1–2 local, 5 cloud |
 | AUTHZ-01 | Document function and resource rules. API checks owner on every list/read/download/write/delete. Two-user guessed-ID tests. | v5.0.0-8.1.1, v5.0.0-8.2.2, v5.0.0-8.3.1 | 1–2 |
-| AUTHZ-02 | Deny privileged functions to ordinary users and default deny when attributes are missing. Negative route tests. | v5.0.0-8.2.1, v5.0.0-8.3.1 | 2 |
+| AUTHZ-02 | If a privileged function is added after the MVP, deny it to ordinary users and default deny when attributes are missing. No MVP admin route exists, so this is not currently testable. | v5.0.0-8.2.1, v5.0.0-8.3.1 | Future route |
 | INPUT-01 | Validate path, query, body, content type, and size; reject unknown fields and malformed IDs without stack traces. Contract and tests. | V2 Validation and Business Logic; V4 API and Web Service | 1–2 |
-| FILE-01 | Before uploads, define types, extensions, maximum size and download handling. Reject unsupported or oversized files. | v5.0.0-5.1.1, v5.0.0-5.2.1, v5.0.0-5.2.2 | Before cloud upload |
+| FILE-01 | Accept only JSON containing nonempty UTF-8 text; enforce a 100,000-byte decoded content limit, reject unsupported media types and oversized content, and return content as `text/plain` with `nosniff`. No arbitrary file upload. | V2 Validation, V4 API; v5.0.0-5.2.1 for size. File extension and malware controls are not applicable to this MVP text-only interface. | Local API, then cloud |
 | FILE-02 | Generate storage keys on server; reject raw client path/key substitution. Traversal tests. | v5.0.0-5.3.2 | 2–3 |
 | DATA-01 | Keep S3 private, encrypt storage and transport, exclude sensitive data from responses/logs. Plan and public-access checks. | V11 Cryptography; V12 Secure Communication; V14 Data Protection | 3–5 |
 | IAM-01 | Scope Lambda to required table/bucket actions and OIDC role to approved workflow and resources. Policy and plan review. | V13 Configuration; V15 Secure Coding and Architecture | 3–5 |
