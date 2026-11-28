@@ -1,6 +1,6 @@
 # Eight-week roadmap
 
-Budget: about six hours weekly, 48 hours total. These are timeboxes, not promises that every named tool or cloud feature will be delivered. Use one small branch and pull request per coherent change. The present task is documentation only; track current state in [PROGRESS](PROGRESS.md).
+Budget: about six hours weekly, 48 hours total. These are timeboxes, not promises that every named tool or cloud feature will be delivered. Use one small branch and pull request per coherent change. Track current state in [PROGRESS](PROGRESS.md). Secure CI/CD and GitHub OIDC remain P0 portfolio objectives; extra scanner count does not.
 
 | Week | Tasks (approximate allocation) | Acceptance criteria | Deliverables |
 | --- | --- | --- | --- |

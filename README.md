@@ -6,7 +6,7 @@ SecureDocs is a planned AWS cloud-native application security lab for a small do
 
 ## Planned architecture
 
-A TypeScript API starts locally. A later, explicitly approved cloud deployment would use API Gateway, Lambda, Cognito, DynamoDB for document metadata, and private S3 for bytes. The API will check document ownership on every operation. GitHub Actions would use OIDC for a scoped deployment role. See [architecture](docs/architecture.md).
+A TypeScript API starts locally. Its five-route [OpenAPI contract](docs/api-contract.yaml) and [Alice/Bob authorization matrix](docs/authorization-matrix.md) are design artifacts awaiting implementation. A later, explicitly approved cloud deployment would use API Gateway, Lambda, Cognito, DynamoDB for document metadata, and private S3 for bytes. The API will check document ownership on every operation. GitHub Actions would use OIDC for a scoped deployment role. See [architecture](docs/architecture.md).
 
 ## Roadmap
 
