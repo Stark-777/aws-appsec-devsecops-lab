@@ -1,15 +1,15 @@
 openapi: 3.1.0
 info:
   title: SecureDocs MVP API
-  version: 0.1.0
+  version: 0.1.1
   description: >-
-    Documentation-only contract for a synthetic, owner-only text document API.
-    No endpoint or authentication integration is implemented yet. 100 KB means
+    Contract for the local synthetic, owner-only text document API. The local
+    bearer-token adapter is not production authentication. 100 KB means
     100,000 bytes of UTF-8 encoded document content after JSON decoding, not
     the number of Unicode characters or the size of the JSON envelope.
 servers:
-  - url: http://localhost:3000
-    description: Planned local development server; not yet implemented
+  - url: http://127.0.0.1:3000
+    description: Local development server bound to 127.0.0.1
 tags:
   - name: Documents
     description: Owner-only document operations
@@ -31,6 +31,11 @@ paths:
         not permit arbitrary file uploads, filenames, sharing, or admin roles.
       requestBody:
         required: true
+        x-max-raw-body-bytes: 1000000
+        description: >-
+          The separate 1,000,000-byte raw HTTP body limit accommodates a
+          100,000-byte document encoded entirely as six-byte JSON Unicode
+          escapes, plus a bounded JSON envelope.
         content:
           application/json:
             schema:
@@ -258,7 +263,7 @@ components:
             code: not_found
             message: Document not found.
     ContentTooLarge:
-      description: Decoded UTF-8 document content exceeds 100,000 bytes
+      description: Decoded UTF-8 document content exceeds 100,000 bytes or the raw HTTP body exceeds 1,000,000 bytes
       content:
         application/json:
           schema:

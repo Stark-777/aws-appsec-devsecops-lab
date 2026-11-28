@@ -1,6 +1,6 @@
 # MVP authorization matrix and test scenarios
 
-**Status:** design and planned tests only. The [OpenAPI contract](api-contract.yaml) defines responses; no route is implemented yet. Alice and Bob are synthetic users with distinct authenticated subject IDs. Alice owns document `A1`; Bob owns `B1`. `U1` is a valid UUID with no stored document. A guessed ID means the caller knows or guesses another user's syntactically valid UUID; UUID unpredictability is not an authorization control.
+**Status:** local scenarios implemented in [API security tests](../test/api-security.test.ts); cloud JWT and S3 cases remain pending. The [OpenAPI contract](api-contract.yaml) defines responses. Alice and Bob are synthetic users with distinct authenticated subject IDs. Alice owns document `A1`; Bob owns `B1`. `U1` is a valid UUID with no stored document. A guessed ID means the caller knows or guesses another user's syntactically valid UUID; UUID unpredictability is not an authorization control.
 
 ## Rules and response precedence
 
@@ -48,7 +48,9 @@
 
 ## Evidence expected during implementation
 
-Use one fixture per subject, stable synthetic documents, and assertions for both status and absence of side effects. For the 404 rule, assert the same response body for another owner's valid UUID and a nonexistent valid UUID on each ID route. For deletion, re-read as Alice after Bob's failed attempt. Record test names and results against the IDs above. The storage operation should be observable through a test double so a 401/400/404 path can assert no unauthorized S3 access.
+The local [API suite](../test/api-security.test.ts) names each scenario ID and checks status plus side effects. It compares absent and other-owner 404 bodies on every ID route; reads Alice's data after Bob's denied deletion; and uses an instrumented in-memory repository to assert no content load or removal on denied access. [Repository unit tests](../test/repository.test.ts) check owner-scoped storage operations. These tests do not prove any S3 behavior.
+
+**Cloud-only pending:** C03's expired, forged, wrong-issuer and wrong-audience JWT variants; real Cognito token validation; private S3 and IAM checks; and cloud storage read/delete ordering. C03 locally checks only an unknown synthetic bearer token. No local test should be described as JWT verification.
 
 ## Residual design risks
 

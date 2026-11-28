@@ -1,6 +1,6 @@
 # SecureDocs threat model
 
-**Status:** route-specific design review, 2026-11-26. All controls and tests below are planned, not implemented. System boundaries are in [architecture](../../docs/architecture.md); route behavior and scenario IDs are in the [authorization matrix](../../docs/authorization-matrix.md).
+**Status:** route-specific review with local implementation evidence, 2026-11-27. Local owner checks, validation and response behavior have [tests](../../test/api-security.test.ts); cloud token, S3, CI and monitoring controls remain planned. System boundaries are in [architecture](../../docs/architecture.md); scenario IDs are in the [authorization matrix](../../docs/authorization-matrix.md).
 
 Assets: synthetic document bytes, metadata/ownership, user tokens, API availability, deployment permissions, audit evidence and budget. Actors: Alice, Bob, unauthenticated caller, maintainer, CI workflow and attacker controlling requests or a compromised workflow. Likelihood and impact are qualitative design estimates for a small lab, not measured exploitation rates.
 
@@ -23,4 +23,4 @@ Assets: synthetic document bytes, metadata/ownership, user tokens, API availabil
 4. `DELETE /documents/{id}`: identity → stored owner check → removal of metadata and bytes. Failed cross-user deletes must not mutate either store.
 5. GitHub → AWS and API → logs remain future cloud boundaries. Secure CI/CD and scoped OIDC stay P0 portfolio objectives even though no AWS action is authorized in this task.
 
-For each implemented path, attach actual test evidence and owner, then reassess likelihood and residual risk. Record confirmed issues in [findings](../findings/README.md). The current table describes proposed controls only.
+For each cloud path, attach actual evidence and reassess likelihood and residual risk. Record confirmed issues in [findings](../findings/README.md). Passing local tests is evidence for the implemented code path, not proof that Cognito, S3, or deployment controls work.

@@ -1,6 +1,6 @@
 # Initial security requirements
 
-These project requirements align with [OWASP ASVS 5.0.0](https://github.com/OWASP/ASVS/tree/v5.0.0/5.0/en). This is neither an ASVS certification nor a claim that all Level 1 controls are met. All rows are **planned** until linked implementation evidence exists. Versioned IDs avoid ambiguity when ASVS changes.
+These project requirements align with [OWASP ASVS 5.0.0](https://github.com/OWASP/ASVS/tree/v5.0.0/5.0/en). This is neither an ASVS certification nor a claim that all Level 1 controls are met. Local evidence is listed below; cloud controls remain planned. Versioned IDs avoid ambiguity when ASVS changes.
 
 | ID | Requirement and evidence | ASVS 5.0.0 alignment | Stage |
 | --- | --- | --- | --- |
@@ -16,3 +16,15 @@ These project requirements align with [OWASP ASVS 5.0.0](https://github.com/OWAS
 | SUPPLY-01 | Pin dependencies/actions; run selected code, dependency, secret and IaC checks; triage results and enforce documented gates. Generate an SBOM if time allows. CI evidence. | V13 Configuration; V15 Secure Coding and Architecture | 4; SBOM stretch |
 
 Each implemented row needs a test, scan, or manual check in the final assessment. A passing scanner alone does not close an authorization requirement. Record exceptions in [findings](../security/findings/README.md).
+
+## Local evidence and remaining verification
+
+| Requirement | Local evidence | Remaining boundary |
+| --- | --- | --- |
+| AUTH-01 | [API tests](../test/api-security.test.ts) C02–C03, L04, M04, R04, D04 assert 401 and precedence for missing/unknown synthetic tokens. | JWT signature, issuer, audience and expiry validation require a future cloud identity provider. |
+| AUTHZ-01 | API tests C01, L01–L03, M01–M03, R01–R03, D01–D03 and [repository tests](../test/repository.test.ts) cover owner-scoped list/read/delete and no denied content access. | DynamoDB/S3 IAM and integration behavior remain unverified. |
+| AUTHZ-02 | No privileged endpoint exists in the MVP. | Define tests if an admin or sharing function is added. |
+| INPUT-01 | API tests C04–C08, L05, M05, R05, D05 and raw-body case cover schema, malformed UTF-8/JSON, duplicate keys, IDs, query fields and size limits. | API Gateway request transformations and deployed limits remain unverified. |
+| FILE-01 | API tests C05–C08 and R01 cover media type, decoded UTF-8 byte boundary, raw bound and `text/plain`/`nosniff`. | Load, rate and cloud cost controls remain open. |
+| FILE-02 | API test C01 and repository unit test verify server-generated key and no API exposure; C04/L05 reject client-supplied key fields. | S3 key generation and policy integration remain unverified. |
+| DATA-01, IAM-01, LOG-01, SUPPLY-01 | No cloud or CI control is claimed from these local tests. | Design, deploy and verify in later approved milestones. |
